@@ -4,6 +4,7 @@ RubaXa Sortable for Yii 2
 This is an [Yii framework 2.0](http://www.yiiframework.com) implementation of the [RubaXa Sortable](https://rubaxa.github.io/Sortable/) extension. To create reorderable drag-and-drop lists for modern browsers and touch devices.
 
 [![Latest Stable Version](https://poser.pugx.org/yii-ui/yii2-rubaxa-sortable/v/stable.png)](https://packagist.org/packages/yii-ui/yii2-rubaxa-sortable)
+[![Code Climate](https://codeclimate.com/github/yii-ui/yii2-rubaxa-sortable/badges/gpa.svg)](https://codeclimate.com/github/yii-ui/yii2-rubaxa-sortable)
 [![Total Downloads](https://poser.pugx.org/yii-ui/yii2-rubaxa-sortable/downloads.png)](https://packagist.org/packages/yii-ui/yii2-rubaxa-sortable)
 [![License](https://poser.pugx.org/yii-ui/yii2-rubaxa-sortable/license)](https://packagist.org/packages/yii-ui/yii2-rubaxa-sortable)
 
@@ -53,7 +54,7 @@ For plugin configuration see RubaXa Sortable [Documentation](https://rubaxa.gith
 Documentation
 ------------
 
-[Documentation](https://www.yii-ui.com/yii2-rubaxa-sortable/docs) Will be added soon at https://www.yii-ui.com/yii2-rubaxa-sortable/docs.
+[Documentation](https://www.yii-ui.com/yii2-rubaxa-sortable/docs) will be added soon at https://www.yii-ui.com/yii2-rubaxa-sortable/docs.
 
 License
 -------
