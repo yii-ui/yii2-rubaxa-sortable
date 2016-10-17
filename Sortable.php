@@ -40,6 +40,22 @@ use yii\helpers\Json;
  */
 class Sortable extends Widget
 {
+    /**
+     * Option to display the sortable widget with custom elements and styles
+     */
+    const TYPE_CUSTOM = 0;
+
+    /**
+     * Option to display the sortable widget as bootstrap list-group.
+     */
+    const TYPE_BS_LIST = 1;
+
+    /**
+     * @var int the display type of the sortable widget.
+     * Should be set with on of the [[Sortable::TYPE]] constants.
+     */
+    public $type = self::TYPE_BS_LIST;
+
     /***
      * @inheritDoc
      */
@@ -48,7 +64,7 @@ class Sortable extends Widget
     /**
      * @var string the tag name for the container element.
      */
-    public $containerElement = 'ul';
+    public $containerElement = '';
 
     /**
      * @var array the HTML attributes for the container tag.
@@ -60,7 +76,7 @@ class Sortable extends Widget
      * @var string the tag name for the item element. This will be overwritten
      * by the "element" set in individual [[items]].
      */
-    public $itemElement = 'li';
+    public $itemElement = '';
 
     /**
      * @var array the HTML attributes for the item tag. This will be overwritten
@@ -182,6 +198,28 @@ class Sortable extends Widget
                 $this->clientOptions['filter'] = 'rubaxa-sortable-disabled';
             }
         }
+
+        switch ($this->type) {
+            case self::TYPE_BS_LIST:
+                Html::addCssClass($this->containerOptions, 'list-group');
+
+                if (empty($this->containerElement)) {
+                    $this->containerElement = 'ul';
+                }
+
+                if (empty($this->itemElement)) {
+                    $this->itemElement = 'li';
+                }
+                break;
+        }
+
+        if (empty($this->containerElement)) {
+            $this->containerElement = 'div';
+        }
+
+        if (empty($this->itemElement)) {
+            $this->itemElement = 'div';
+        }
     }
 
     /**
@@ -248,6 +286,12 @@ class Sortable extends Widget
 
             if (ArrayHelper::getValue($item, 'disabled', false)) {
                 Html::addCssClass($itemOptions, $this->clientOptions['filter']);
+            }
+
+            switch ($this->type) {
+                case self::TYPE_BS_LIST:
+                    Html::addCssClass($itemOptions, 'list-group-item');
+                    break;
             }
 
             $addHandle = ArrayHelper::getValue($item, 'addHandle', $this->addHandle);
