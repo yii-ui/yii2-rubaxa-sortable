@@ -12,6 +12,7 @@ use yii\base\Widget;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Json;
+use Yii;
 
 /**
  * Create reorderable drag-and-drop lists for modern browsers and touch devices.
@@ -55,6 +56,27 @@ class Sortable extends Widget
      * Should be set with on of the [[Sortable::TYPE]] constants.
      */
     public $type = self::TYPE_BS_LIST;
+
+    /**
+     * Option to use plain text for the delete and handle button.
+     */
+    const ICONS_TEXT = 't';
+
+    /**
+     * Option to use glyphicons for the delete and handle button.
+     */
+    const ICONS_GLYPHICONS = 'g';
+
+    /**
+     * Option to use font awesome for the delete and handle button.
+     */
+    const ICONS_FONT_AWESOME = 'f';
+
+    /**
+     * @var string the type of icons which are used for the delete and handle button.
+     * Should be set with on of the [[Sortable::ICONS]] constants.
+     */
+    public $icons = self::ICONS_GLYPHICONS;
 
     /***
      * @inheritDoc
@@ -130,7 +152,7 @@ class Sortable extends Widget
      * @var string the handle label, this is not HTML encoded. This will be overwritten
      * by the "handleLabel" set in individual [[items]].
      */
-    public $handleLabel = '::';
+    public $handleLabel = '';
 
     /**
      * @var bool add handle to each item. This will be overwritten
@@ -149,6 +171,35 @@ class Sortable extends Widget
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $handleOptions = [];
+
+    /**
+     * @var string the delete button label, this is not HTML encoded. This will be overwritten
+     * by the "deleteLabel" set in individual [[items]].
+     */
+    public $deleteLabel = '';
+
+    /**
+     * @var bool add handle to each item. This will be overwritten
+     * by the "addDelete" set in individual [[items]].
+     */
+    public $addDelete = false;
+
+    /**
+     * @var string the tag name for the delete button element. This will be overwritten
+     * by the "deleteElement" set in individual [[items]].
+     */
+    public $deleteElement = 'span';
+
+    /**
+     * @var array the HTML attributes for the delete button tag.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $deleteOptions = [];
+
+    /**
+     * @var string selector for delete buttons.
+     */
+    public $deleteSelector = '.rubaxa-sortable-delete';
 
     /**
      * @var array the options for the underlying RubaXa Sortable widget.
@@ -177,11 +228,52 @@ class Sortable extends Widget
      */
     private $_availableClientEvents = ['choose', 'start', 'end', 'add', 'update', 'sort', 'remove', 'filter', 'move', 'clone'];
 
+    public function init()
+    {
+        parent::init();
+
+        Yii::$app->i18n->translations['yii2-rubaxa-sortable'] = [
+            'class' => 'yii\i18n\PhpMessageSource',
+            'sourceLanguage' => 'en_US',
+            'basePath' => '@vendor/yii-ui/yii2-rubaxa-sortable/messages',
+        ];
+    }
+
     /***
      * @inheritDoc
      */
     public function run()
     {
+        switch ($this->icons) {
+            case self::ICONS_GLYPHICONS:
+                if (empty($this->handleLabel)) {
+                    $this->handleLabel = '<span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Move').'"></span> ';
+                }
+
+                if (empty($this->deleteLabel)) {
+                    $this->deleteLabel = ' <span class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Delete').'"></span>';
+                }
+                break;
+            case self::ICONS_FONT_AWESOME:
+                if (empty($this->handleLabel)) {
+                    $this->handleLabel = '<i class="fa fa-arrows" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Move').'"></i> ';
+                }
+
+                if (empty($this->deleteLabel)) {
+                    $this->deleteLabel = ' <i class="fa fa-times" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Delete').'"></i>';
+                }
+                break;
+            case self::ICONS_TEXT:
+                if (empty($this->handleLabel)) {
+                    $this->handleLabel = '<span aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Move').'">::</span> ';
+                }
+
+                if (empty($this->deleteLabel)) {
+                    $this->deleteLabel = ' <span aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Delete').'">x</span>';
+                }
+                break;
+        }
+
         if (empty($this->containerOptions['id'])) {
             $this->containerOptions['id'] = $this->getId();
         }
@@ -213,6 +305,16 @@ class Sortable extends Widget
             if (empty($this->clientOptions['filter'])) {
                 $this->clientOptions['filter'] = '.rubaxa-sortable-disabled';
             }
+        }
+
+        if ($this->addDelete || $this->itemHasEnabledOption('addDelete')) {
+            $delteJs = <<<JS
+jQuery('$this->deleteSelector').click(function() {
+  $(this).parent().remove();
+});
+JS;
+
+            $this->getView()->registerJs($delteJs);
         }
 
         switch ($this->type) {
@@ -310,16 +412,11 @@ class Sortable extends Widget
                     break;
             }
 
-            $addHandle = ArrayHelper::getValue($item, 'addHandle', $this->addHandle);
-
-            if ($addHandle) {
+            if (ArrayHelper::getValue($item, 'addHandle', $this->addHandle)) {
                 $handleOptions = ArrayHelper::merge($this->handleOptions, ArrayHelper::getValue($item, 'handleOptions', []));
-
                 Html::addCssClass($handleOptions, substr($this->clientOptions['handle'], 1));
 
-                $handleElement = ArrayHelper::getValue($item, 'handleElement', $this->handleElement);
-                $handleLabel = ArrayHelper::getValue($item, 'handleLabel', $this->handleLabel);
-                $content = Html::tag($handleElement, $handleLabel, $handleOptions);
+                $content = Html::tag(ArrayHelper::getValue($item, 'handleElement', $this->handleElement), ArrayHelper::getValue($item, 'handleLabel', $this->handleLabel), $handleOptions);
             } else {
                 $content = '';
             }
@@ -334,6 +431,19 @@ class Sortable extends Widget
                 }
             } else {
                 $content .= $item;
+            }
+
+            if (ArrayHelper::getValue($item, 'addDelete', $this->addDelete)) {
+                $deleteOptions = ArrayHelper::merge($this->deleteOptions, ArrayHelper::getValue($item, 'deleteOptions', []));
+                Html::addCssClass($deleteOptions, substr($this->deleteSelector, 1));
+
+                switch ($this->type) {
+                    case self::TYPE_BS_LIST:
+                        Html::addCssClass($deleteOptions, 'pull-right');
+                        break;
+                }
+
+                $content .= Html::tag(ArrayHelper::getValue($item, 'deleteElement', $this->deleteElement), ArrayHelper::getValue($item, 'deleteLabel', $this->deleteLabel), $deleteOptions);
             }
 
             $element = ArrayHelper::getValue($item, 'element', $this->itemElement);
