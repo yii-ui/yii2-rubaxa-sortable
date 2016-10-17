@@ -40,6 +40,11 @@ use yii\helpers\Json;
  */
 class Sortable extends Widget
 {
+    /***
+     * @inheritDoc
+     */
+    public static $autoIdPrefix = 'YIIUIRS';
+
     /**
      * @var string the tag name for the container element.
      */
@@ -145,6 +150,10 @@ class Sortable extends Widget
      */
     public function run()
     {
+        if (empty($this->containerOptions['id'])) {
+            $this->containerOptions['id'] = $this->getId();
+        }
+
         $id = $this->containerOptions['id'];
 
         $this->initClientOptions();
