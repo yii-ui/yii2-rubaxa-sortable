@@ -111,6 +111,17 @@ class Sortable extends Widget
     public $items = [];
 
     /**
+     * @var bool disable items by default. This will be overwritten
+     * by the "disabled" set in individual [[items]].
+     */
+    public $disabled = false;
+
+    /**
+     * @var string css class to style disabled items.
+     */
+    public $disabledClass = 'disabled';
+
+    /**
      * @var string the handle label, this is not HTML encoded. This will be overwritten
      * by the "handleLabel" set in individual [[items]].
      */
@@ -189,13 +200,13 @@ class Sortable extends Widget
     {
         if ($this->addHandle || $this->itemHasEnabledOption('addHandle')) {
             if (empty($this->clientOptions['handle'])) {
-                $this->clientOptions['handle'] = 'rubaxa-sortable-handle';
+                $this->clientOptions['handle'] = '.rubaxa-sortable-handle';
             }
         }
 
-        if ($this->itemHasEnabledOption('disabled')) {
+        if ($this->disabled || $this->itemHasEnabledOption('disabled')) {
             if (empty($this->clientOptions['filter'])) {
-                $this->clientOptions['filter'] = 'rubaxa-sortable-disabled';
+                $this->clientOptions['filter'] = '.rubaxa-sortable-disabled';
             }
         }
 
@@ -284,8 +295,8 @@ class Sortable extends Widget
         foreach ($this->items as $item) {
             $itemOptions = ArrayHelper::merge($this->itemOptions, ArrayHelper::getValue($item, 'options', []));
 
-            if (ArrayHelper::getValue($item, 'disabled', false)) {
-                Html::addCssClass($itemOptions, $this->clientOptions['filter']);
+            if (ArrayHelper::getValue($item, 'disabled', $this->disabled)) {
+                Html::addCssClass($itemOptions, [substr($this->clientOptions['filter'], 1), $this->disabledClass]);
             }
 
             switch ($this->type) {
@@ -299,7 +310,7 @@ class Sortable extends Widget
             if ($addHandle) {
                 $handleOptions = ArrayHelper::merge($this->handleOptions, ArrayHelper::getValue($item, 'handleOptions', []));
 
-                Html::addCssClass($handleOptions, $this->clientOptions['handle']);
+                Html::addCssClass($handleOptions, substr($this->clientOptions['handle'], 1));
 
                 $handleElement = ArrayHelper::getValue($item, 'handleElement', $this->handleElement);
                 $handleLabel = ArrayHelper::getValue($item, 'handleLabel', $this->handleLabel);
