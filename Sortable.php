@@ -73,6 +73,11 @@ class Sortable extends Widget
     public $containerOptions = [];
 
     /**
+     * @var string the name of the id attribute.
+     */
+    public $itemId = 'id';
+
+    /**
      * @var string the tag name for the item element. This will be overwritten
      * by the "element" set in individual [[items]].
      */
@@ -321,6 +326,12 @@ class Sortable extends Widget
 
             if (is_array($item)) {
                 $content .= ArrayHelper::getValue($item, 'content', '');
+
+                $id = ArrayHelper::getValue($item, $this->itemId, null);
+
+                if ($id !== null) {
+                    $itemOptions['data-id'] = $id;
+                }
             } else {
                 $content .= $item;
             }
