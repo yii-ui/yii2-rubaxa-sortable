@@ -226,7 +226,18 @@ class Sortable extends Widget
      * @var array List of available events
      * @see https://github.com/RubaXa/Sortable#options
      */
-    private $_availableClientEvents = ['choose', 'start', 'end', 'add', 'update', 'sort', 'remove', 'filter', 'move', 'clone'];
+    private $_availableClientEvents = [
+        'choose',
+        'start',
+        'end',
+        'add',
+        'update',
+        'sort',
+        'remove',
+        'filter',
+        'move',
+        'clone'
+    ];
 
     public function init()
     {
@@ -306,22 +317,18 @@ class Sortable extends Widget
      */
     protected function initClientOptions()
     {
-        if ($this->addHandle || $this->itemHasEnabledOption('addHandle')) {
-            if (empty($this->clientOptions['handle'])) {
-                $this->clientOptions['handle'] = '.rubaxa-sortable-handle';
-            }
+        if (($this->addHandle || $this->itemHasEnabledOption('addHandle')) && empty($this->clientOptions['handle'])) {
+            $this->clientOptions['handle'] = '.rubaxa-sortable-handle';
         }
 
-        if ($this->disabled || $this->itemHasEnabledOption('disabled')) {
-            if (empty($this->clientOptions['filter'])) {
-                $this->clientOptions['filter'] = '.rubaxa-sortable-disabled';
-            }
+        if (($this->disabled || $this->itemHasEnabledOption('disabled')) && empty($this->clientOptions['filter'])) {
+            $this->clientOptions['filter'] = '.rubaxa-sortable-disabled';
         }
 
         if ($this->addDelete || $this->itemHasEnabledOption('addDelete')) {
             $delteJs = <<<JS
 jQuery('$this->deleteSelector').click(function() {
-  $(this).parent().remove();
+  jQuery(this).parent().remove();
 });
 JS;
 
@@ -388,17 +395,17 @@ JS;
     protected function registerClientEvents($containerId)
     {
         if (!empty($this->clientEvents)) {
-            $js = [];
+            $jsEvents = '';
 
             foreach ($this->clientEvents as $event => $handler) {
                 if (isset($this->_availableClientEvents[$event])) {
-                    $js[] = 'jQuery(\'#'.$containerId.'\').on(\''.$event.'\', $handler);';
+                    $jsEvents .= 'jQuery(\'#'.$containerId.'\').on(\''.$event.'\', '.$handler.');';
                 } else {
                     throw new InvalidConfigException('Unknow event "'.$event.'".');
                 }
             }
 
-            $this->getView()->registerJs(implode(PHP_EOL, $js));
+            $this->getView()->registerJs($jsEvents);
         }
     }
 
@@ -411,7 +418,10 @@ JS;
         $items = '';
 
         foreach ($this->items as $item) {
-            $itemOptions = ArrayHelper::merge($this->itemOptions, ArrayHelper::getValue($item, 'options', []));
+            $itemOptions = ArrayHelper::merge(
+                $this->itemOptions,
+                ArrayHelper::getValue($item, 'options', [])
+            );
 
             if (ArrayHelper::getValue($item, 'disabled', $this->disabled)) {
                 Html::addCssClass($itemOptions, [substr($this->clientOptions['filter'], 1), $this->disabledClass]);
@@ -426,10 +436,17 @@ JS;
             $content = '';
 
             if (ArrayHelper::getValue($item, 'addHandle', $this->addHandle)) {
-                $handleOptions = ArrayHelper::merge($this->handleOptions, ArrayHelper::getValue($item, 'handleOptions', []));
+                $handleOptions = ArrayHelper::merge(
+                    $this->handleOptions,
+                    ArrayHelper::getValue($item, 'handleOptions', [])
+                );
                 Html::addCssClass($handleOptions, substr($this->clientOptions['handle'], 1));
 
-                $content = Html::tag(ArrayHelper::getValue($item, 'handleElement', $this->handleElement), ArrayHelper::getValue($item, 'handleLabel', $this->handleLabel), $handleOptions);
+                $content = Html::tag(
+                    ArrayHelper::getValue($item, 'handleElement', $this->handleElement),
+                    ArrayHelper::getValue($item, 'handleLabel', $this->handleLabel),
+                    $handleOptions
+                );
             }
 
             if (is_array($item)) {
@@ -445,7 +462,10 @@ JS;
             }
 
             if (ArrayHelper::getValue($item, 'addDelete', $this->addDelete)) {
-                $deleteOptions = ArrayHelper::merge($this->deleteOptions, ArrayHelper::getValue($item, 'deleteOptions', []));
+                $deleteOptions = ArrayHelper::merge(
+                    $this->deleteOptions,
+                    ArrayHelper::getValue($item, 'deleteOptions', [])
+                );
                 Html::addCssClass($deleteOptions, substr($this->deleteSelector, 1));
 
                 switch ($this->type) {
@@ -454,7 +474,11 @@ JS;
                         break;
                 }
 
-                $content .= Html::tag(ArrayHelper::getValue($item, 'deleteElement', $this->deleteElement), ArrayHelper::getValue($item, 'deleteLabel', $this->deleteLabel), $deleteOptions);
+                $content .= Html::tag(
+                    ArrayHelper::getValue($item, 'deleteElement', $this->deleteElement),
+                    ArrayHelper::getValue($item, 'deleteLabel', $this->deleteLabel),
+                    $deleteOptions
+                );
             }
 
             $element = ArrayHelper::getValue($item, 'element', $this->itemElement);
