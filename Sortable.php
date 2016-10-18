@@ -503,10 +503,10 @@ class Sortable extends Widget
      */
     private function getItemContent($item, &$itemOptions)
     {
-        $id = ArrayHelper::getValue($item, $this->itemId, null);
+        $itemId = ArrayHelper::getValue($item, $this->itemId, null);
 
-        if ($id !== null) {
-            $itemOptions['data-id'] = $id;
+        if ($itemId !== null) {
+            $itemOptions['data-id'] = $itemId;
         }
 
         return (string)ArrayHelper::getValue($item, 'content', '');
