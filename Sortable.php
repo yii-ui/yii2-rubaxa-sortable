@@ -239,6 +239,9 @@ class Sortable extends Widget
         'clone'
     ];
 
+    /**
+     * Initializes the sortable widget.
+     */
     public function init()
     {
         parent::init();
@@ -248,12 +251,35 @@ class Sortable extends Widget
             'sourceLanguage' => 'en_US',
             'basePath' => '@vendor/yii-ui/yii2-rubaxa-sortable/messages',
         ];
+
+        $this->initClientOptions();
+        $this->initIcons();
+        $this->initSortableType();
     }
 
     /***
      * @inheritdoc
      */
     public function run()
+    {
+        if (empty($this->containerOptions['id'])) {
+            $this->containerOptions['id'] = $this->getId();
+        }
+
+        $containerId = $this->containerOptions['id'];
+
+        echo Html::beginTag($this->containerElement, $this->containerOptions);
+        echo $this->renderItems();
+        echo Html::endTag($this->containerElement);
+
+        $this->registerClientWidget($containerId);
+        $this->registerClientEvents($containerId);
+    }
+
+    /**
+     * Initializes button icons depending on [[icons]].
+     */
+    protected function initIcons()
     {
         if (empty($this->handleLabel) || empty($this->deleteLabel)) {
             $deleteIconTag = 'span';
@@ -295,46 +321,13 @@ class Sortable extends Widget
                 $this->deleteLabel = Html::tag($deleteIconTag, $deleteIconContent, $deleteIconOptions);
             }
         }
-
-        if (empty($this->containerOptions['id'])) {
-            $this->containerOptions['id'] = $this->getId();
-        }
-
-        $containerId = $this->containerOptions['id'];
-
-        $this->initClientOptions();
-
-        echo Html::beginTag($this->containerElement, $this->containerOptions);
-        echo $this->renderItems();
-        echo Html::endTag($this->containerElement);
-
-        $this->registerClientWidget($containerId);
-        $this->registerClientEvents($containerId);
     }
 
     /**
-     * Initializes the client widget options.
+     * Initializes container and item settings depending on [[type]].
      */
-    protected function initClientOptions()
+    protected function initSortableType()
     {
-        if (($this->addHandle || $this->itemHasEnabledOption('addHandle')) && empty($this->clientOptions['handle'])) {
-            $this->clientOptions['handle'] = '.rubaxa-sortable-handle';
-        }
-
-        if (($this->disabled || $this->itemHasEnabledOption('disabled')) && empty($this->clientOptions['filter'])) {
-            $this->clientOptions['filter'] = '.rubaxa-sortable-disabled';
-        }
-
-        if ($this->addDelete || $this->itemHasEnabledOption('addDelete')) {
-            $delteJs = <<<JS
-jQuery('$this->deleteSelector').click(function() {
-  jQuery(this).parent().remove();
-});
-JS;
-
-            $this->getView()->registerJs($delteJs);
-        }
-
         switch ($this->type) {
             case self::TYPE_BS_LIST:
                 Html::addCssClass($this->containerOptions, 'list-group');
@@ -359,10 +352,24 @@ JS;
     }
 
     /**
-     * Check if there is any item which has the passed option enabled
+     * Initializes the client widget options.
+     */
+    protected function initClientOptions()
+    {
+        if (($this->addHandle || $this->itemHasEnabledOption('addHandle')) && empty($this->clientOptions['handle'])) {
+            $this->clientOptions['handle'] = '.rubaxa-sortable-handle';
+        }
+
+        if (($this->disabled || $this->itemHasEnabledOption('disabled')) && empty($this->clientOptions['filter'])) {
+            $this->clientOptions['filter'] = '.rubaxa-sortable-disabled';
+        }
+    }
+
+    /**
+     * Check if there is any item which has the passed option enabled.
      *
-     * @param string $option key name of the array element
-     * @return bool
+     * @param string $option key name of the array element.
+     * @return bool has item with the passed option.
      */
     protected function itemHasEnabledOption($option)
     {
@@ -376,20 +383,28 @@ JS;
     }
 
     /**
-     * Registers a sortable widget
-     * @param string $containerId the ID of the widget
+     * Registers a sortable widget.
+     *
+     * @param string $containerId the ID of the widget.
      */
     protected function registerClientWidget($containerId)
     {
-        $clientOptions = Json::htmlEncode($this->clientOptions);
-        SortableAsset::register($this->getView());
+        $widgetJs = '';
 
-        $this->getView()->registerJs('jQuery(\'#'.$containerId.'\').sortable('.$clientOptions.');');
+        if ($this->addDelete || $this->itemHasEnabledOption('addDelete')) {
+            $widgetJs = 'jQuery(\''.$this->deleteSelector.'\').click(function() {jQuery(this).parent().remove();});';
+        }
+
+        SortableAsset::register($this->getView());
+        $widgetJs .= 'jQuery(\'#'.$containerId.'\').sortable('.Json::htmlEncode($this->clientOptions).');';
+
+        $this->getView()->registerJs($widgetJs);
     }
 
     /**
-     * Registers sortable widget events
-     * @param string $containerId the ID of the widget
+     * Registers sortable widget events.
+     *
+     * @param string $containerId the ID of the widget.
      * @throws InvalidConfigException if `$clientEvents` array contains an unsupported event name.
      */
     protected function registerClientEvents($containerId)
@@ -398,11 +413,11 @@ JS;
             $jsEvents = '';
 
             foreach ($this->clientEvents as $event => $handler) {
-                if (isset($this->_availableClientEvents[$event])) {
-                    $jsEvents .= 'jQuery(\'#'.$containerId.'\').on(\''.$event.'\', '.$handler.');';
-                } else {
+                if (!isset($this->_availableClientEvents[$event])) {
                     throw new InvalidConfigException('Unknow event "'.$event.'".');
                 }
+
+                $jsEvents .= 'jQuery(\'#'.$containerId.'\').on(\''.$event.'\', '.$handler.');';
             }
 
             $this->getView()->registerJs($jsEvents);
@@ -411,6 +426,7 @@ JS;
 
     /**
      * Renders the item list of the sortable container as specified on [[items]].
+     *
      * @return string the rendering result.
      */
     private function renderItems()
@@ -449,17 +465,7 @@ JS;
                 );
             }
 
-            if (is_array($item)) {
-                $content .= ArrayHelper::getValue($item, 'content', '');
-
-                $id = ArrayHelper::getValue($item, $this->itemId, null);
-
-                if ($id !== null) {
-                    $itemOptions['data-id'] = $id;
-                }
-            } else {
-                $content .= $item;
-            }
+            $content .= is_array($item)?$this->getItemContent($item, $itemOptions):$item;
 
             if (ArrayHelper::getValue($item, 'addDelete', $this->addDelete)) {
                 $deleteOptions = ArrayHelper::merge(
@@ -484,6 +490,25 @@ JS;
             $element = ArrayHelper::getValue($item, 'element', $this->itemElement);
             $items .= Html::tag($element, $content, $itemOptions) . PHP_EOL;
         }
+
         return $items;
+    }
+
+    /**
+     * Checks the options of the passed item and returns its content.
+     *
+     * @param array $item item for sortable list.
+     * @param array $itemOptions the HTML attributes for the item tag.
+     * @return string content of the passed item.
+     */
+    private function getItemContent($item, &$itemOptions)
+    {
+        $id = ArrayHelper::getValue($item, $this->itemId, null);
+
+        if ($id !== null) {
+            $itemOptions['data-id'] = $id;
+        }
+
+        return (string)ArrayHelper::getValue($item, 'content', '');
     }
 }
