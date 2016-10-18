@@ -79,7 +79,7 @@ class Sortable extends Widget
     public $icons = self::ICONS_GLYPHICONS;
 
     /***
-     * @inheritDoc
+     * @inheritdoc
      */
     public static $autoIdPrefix = 'YIIUIRS';
 
@@ -240,7 +240,7 @@ class Sortable extends Widget
     }
 
     /***
-     * @inheritDoc
+     * @inheritdoc
      */
     public function run()
     {
