@@ -244,41 +244,52 @@ class Sortable extends Widget
      */
     public function run()
     {
-        switch ($this->icons) {
-            case self::ICONS_GLYPHICONS:
-                if (empty($this->handleLabel)) {
-                    $this->handleLabel = '<span class="glyphicon glyphicon-move" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Move').'"></span> ';
-                }
+        if (empty($this->handleLabel) || empty($this->deleteLabel)) {
+            $deleteIconTag = 'span';
+            $deleteIconContent = '';
+            $deleteIconOptions = [
+                'aria-hidden' => 'true',
+                'aria-label' => Yii::t('yii2-rubaxa-sortable', 'Delete')
+            ];
 
-                if (empty($this->deleteLabel)) {
-                    $this->deleteLabel = ' <span class="glyphicon glyphicon-remove" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Delete').'"></span>';
-                }
-                break;
-            case self::ICONS_FONT_AWESOME:
-                if (empty($this->handleLabel)) {
-                    $this->handleLabel = '<i class="fa fa-arrows" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Move').'"></i> ';
-                }
+            $handleIconTag = 'span';
+            $handleIconContent = '';
+            $handleIconOptions = [
+                'aria-hidden' => 'true',
+                'aria-label' => Yii::t('yii2-rubaxa-sortable', 'Move')
+            ];
 
-                if (empty($this->deleteLabel)) {
-                    $this->deleteLabel = ' <i class="fa fa-times" aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Delete').'"></i>';
-                }
-                break;
-            case self::ICONS_TEXT:
-                if (empty($this->handleLabel)) {
-                    $this->handleLabel = '<span aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Move').'">::</span> ';
-                }
+            switch ($this->icons) {
+                case self::ICONS_GLYPHICONS:
+                    $handleIconOptions['class'] = 'glyphicon glyphicon-move';
+                    $deleteIconOptions['class'] = 'glyphicon glyphicon-remove';
+                    break;
+                case self::ICONS_FONT_AWESOME:
+                    $handleIconOptions['class'] = 'fa fa-arrows';
+                    $deleteIconOptions['class'] = 'fa fa-times';
+                    $handleIconTag = 'i';
+                    $deleteIconTag = 'i';
+                    break;
+                case self::ICONS_TEXT:
+                    $handleIconContent = '::';
+                    $deleteIconContent = 'x';
+                    break;
+            }
 
-                if (empty($this->deleteLabel)) {
-                    $this->deleteLabel = ' <span aria-hidden="true" aria-label="'.Yii::t('yii2-rubaxa-sortable', 'Delete').'">x</span>';
-                }
-                break;
+            if (empty($this->handleLabel)) {
+                $this->handleLabel = Html::tag($handleIconTag, $handleIconContent, $handleIconOptions);
+            }
+
+            if (empty($this->deleteLabel)) {
+                $this->deleteLabel = Html::tag($deleteIconTag, $deleteIconContent, $deleteIconOptions);
+            }
         }
 
         if (empty($this->containerOptions['id'])) {
             $this->containerOptions['id'] = $this->getId();
         }
 
-        $id = $this->containerOptions['id'];
+        $containerId = $this->containerOptions['id'];
 
         $this->initClientOptions();
 
@@ -286,8 +297,8 @@ class Sortable extends Widget
         echo $this->renderItems();
         echo Html::endTag($this->containerElement);
 
-        $this->registerClientWidget($id);
-        $this->registerClientEvents($id);
+        $this->registerClientWidget($containerId);
+        $this->registerClientEvents($containerId);
     }
 
     /**
@@ -359,29 +370,29 @@ JS;
 
     /**
      * Registers a sortable widget
-     * @param string $id the ID of the widget
+     * @param string $containerId the ID of the widget
      */
-    protected function registerClientWidget($id)
+    protected function registerClientWidget($containerId)
     {
         $clientOptions = Json::htmlEncode($this->clientOptions);
         SortableAsset::register($this->getView());
 
-        $this->getView()->registerJs('jQuery(\'#'.$id.'\').sortable('.$clientOptions.');');
+        $this->getView()->registerJs('jQuery(\'#'.$containerId.'\').sortable('.$clientOptions.');');
     }
 
     /**
      * Registers sortable widget events
-     * @param string $id the ID of the widget
+     * @param string $containerId the ID of the widget
      * @throws InvalidConfigException if `$clientEvents` array contains an unsupported event name.
      */
-    protected function registerClientEvents($id)
+    protected function registerClientEvents($containerId)
     {
         if (!empty($this->clientEvents)) {
             $js = [];
 
             foreach ($this->clientEvents as $event => $handler) {
                 if (isset($this->_availableClientEvents[$event])) {
-                    $js[] = "jQuery('#$id').on('$event', $handler);";
+                    $js[] = 'jQuery(\'#'.$containerId.'\').on(\''.$event.'\', $handler);';
                 } else {
                     throw new InvalidConfigException('Unknow event "'.$event.'".');
                 }
@@ -412,13 +423,13 @@ JS;
                     break;
             }
 
+            $content = '';
+
             if (ArrayHelper::getValue($item, 'addHandle', $this->addHandle)) {
                 $handleOptions = ArrayHelper::merge($this->handleOptions, ArrayHelper::getValue($item, 'handleOptions', []));
                 Html::addCssClass($handleOptions, substr($this->clientOptions['handle'], 1));
 
                 $content = Html::tag(ArrayHelper::getValue($item, 'handleElement', $this->handleElement), ArrayHelper::getValue($item, 'handleLabel', $this->handleLabel), $handleOptions);
-            } else {
-                $content = '';
             }
 
             if (is_array($item)) {
