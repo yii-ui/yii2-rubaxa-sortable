@@ -32,8 +32,7 @@ class SortableAsset extends AssetBundle
         parent::init();
 
         $this->js = [
-            (YII_ENV_DEV?'Sortable.min.js':'Sortable.js'),
-            'jquery.binding.js',
+            (YII_ENV_DEV?'Sortable.min.js':'Sortable.js')
         ];
     }
 
