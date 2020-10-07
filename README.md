@@ -33,7 +33,7 @@ Usage
 -----
 
 ```php
-use yii-ui\rubaxasortable\Sortable;
+use yiiui\rubaxasortable\Sortable;
 
 echo Sortable::widget([
     'items' => [
