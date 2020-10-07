@@ -227,16 +227,19 @@ class Sortable extends Widget
      * @see https://github.com/RubaXa/Sortable#options
      */
     private $_availableClientEvents = [
-        'choose',
-        'start',
-        'end',
-        'add',
-        'update',
-        'sort',
-        'remove',
-        'filter',
-        'move',
-        'clone'
+        'data'     => 'setData',
+        'choose'   => 'onChoose',
+        'unchoose' => 'onUnchoose',
+        'start'    => 'onStart',
+        'end'      => 'onEnd',
+        'add'      => 'onAdd',
+        'update'   => 'onUpdate',
+        'sort'     => 'onSort',
+        'remove'   => 'onRemove',
+        'filter'   => 'onFilter',
+        'move'     => 'onMove',
+        'clone'    => 'onClone',
+        'change'   => 'onChange',
     ];
 
     /**
