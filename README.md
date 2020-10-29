@@ -10,6 +10,10 @@ This is an [Yii framework 2.0](http://www.yiiframework.com) implementation of th
 [![Yii2](https://img.shields.io/badge/Powered_by-Yii_Framework-green.svg?style=flat)](http://www.yiiframework.com/)
 [![License](https://poser.pugx.org/yii-ui/yii2-rubaxa-sortable/license)](https://packagist.org/packages/yii-ui/yii2-rubaxa-sortable)
 
+Credits
+------------
+This extension has been picked up from [yii-ui's yii2-rubaxa-sortable](https://github.com/yii-ui/yii2-rubaxa-sortable). Great work yii-ui!
+
 Installation
 ------------
 
